@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Baking App</string>
+
+    <!--Card View Elements-->
+    <string name="button_view_recipe">View Recipe</string>
+
+</resources>
