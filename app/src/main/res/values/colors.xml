@@ -5,6 +5,5 @@
     <color name="colorAccent">#FF4081</color>
 
     <!--CardView Style-->
-    <item name="button_view_recipe_color">#FF0000</item>
 
 </resources>
