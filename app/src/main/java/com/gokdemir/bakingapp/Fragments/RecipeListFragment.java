@@ -5,48 +5,70 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.gokdemir.bakingapp.Adapter.RecipeListAdapter;
 import com.gokdemir.bakingapp.Helpers.ConnectionChecker;
 import com.gokdemir.bakingapp.Model.Recipe;
 import com.gokdemir.bakingapp.R;
 import com.gokdemir.bakingapp.RetrofitInterface;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import retrofit2.Retrofit;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class RecipeListFragment extends Fragment {
+public class RecipeListFragment extends Fragment implements RecipeListAdapter.RecipeClickListener {
+    public static final String RECIPE_LIST = "recipelist";
 
     private RecyclerView mRecyclerView;
 
     private ProgressDialog progressDialog;
     List<Recipe> recipeList;
 
+    private RecipeListAdapter recipeListAdapter;
+
     Retrofit retrofit;
 
+    private boolean isBundleNull = true;
+
+    public RecipeListFragment(){}
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        progressDialog = new ProgressDialog(getContext());
     }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        if(savedInstanceState != null){
+            recipeList = savedInstanceState.getParcelableArrayList(RECIPE_LIST);
+            isBundleNull = false;
+        }
+
         View view = inflater.inflate(R.layout.recipe_list_fragment, container, false);
 
-        mRecyclerView = (RecyclerView) view.findViewById(R.id.recipe_rv);
+        mRecyclerView = view.findViewById(R.id.recipe_rv);
         mRecyclerView.setHasFixedSize(true);
+
+        if(isBundleNull)
+            retrofitCall();
+
+        recipeListAdapter = new RecipeListAdapter(this);
+        mRecyclerView.setAdapter(recipeListAdapter);
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         return view;
     }
@@ -59,23 +81,22 @@ public class RecipeListFragment extends Fragment {
 
         RetrofitInterface retrofitInterface = retrofit.create(RetrofitInterface.class);
 
-        Call<Recipe> call = retrofitInterface.getRecipes();
+        Call<List<Recipe>> call = retrofitInterface.getRecipes();
 
         onLoading();
 
-        call.enqueue(new Callback<Recipe>() {
+        call.enqueue(new Callback<List<Recipe>>() {
             @Override
-            public void onResponse(Call<Recipe> call, Response<Recipe> response) {
-                recipeList = (List<Recipe>) response.body();
+            public void onResponse(Call<List<Recipe>> call, Response<List<Recipe>> response) {
+                recipeList = response.body();
 
-                //create recyclerview adapter
-                //send this recipeList to the recyclerview adapter inside the fragment.
+                recipeListAdapter.setmRecipeList(recipeList);
 
                 onFinishedLoading();
             }
 
             @Override
-            public void onFailure(Call<Recipe> call, Throwable t) {
+            public void onFailure(Call<List<Recipe>> call, Throwable t) {
                 t.printStackTrace();
             }
         });
@@ -95,5 +116,17 @@ public class RecipeListFragment extends Fragment {
     public void onFinishedLoading(){
         mRecyclerView.setVisibility(View.VISIBLE);
         progressDialog.dismiss();
+    }
+
+    @Override
+    public void onRecipeClick(int position) {
+        //open another fragment using activity
+        Toast.makeText(getContext(), "Item " + String.valueOf(position) + " is clicked.", Toast.LENGTH_SHORT).show();
+    }
+
+
+    @Override
+    public void onSaveInstanceState(Bundle currentState){
+        currentState.putParcelableArrayList(RECIPE_LIST, (ArrayList<Recipe>) recipeList);
     }
 }

@@ -5,5 +5,6 @@
     <string name="button_view_recipe">View Recipe</string>
     <string name="being_fecthed_info">Recipe results are being fetched</string>
     <string name="check_internet">Please check your internet connection!</string>
+    <string name="servings">Servings:</string>
 
 </resources>
